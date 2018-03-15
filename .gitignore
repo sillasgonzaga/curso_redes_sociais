@@ -1,5 +1,7 @@
 # Custom files for this project
 pvt/
+projetos/scielo/
+data_scielo/
 _book/
 _bookdown_files/
 PLANEJAMENTO.md
@@ -11,7 +13,6 @@ do_git.sh
 
 # Data files
 *.Rda
-*.csv
 
 
 # Session Data files
