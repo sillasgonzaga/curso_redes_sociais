@@ -1,0 +1,219 @@
+---
+title: "Redes"
+author: "Sillas Teixeira Gonzaga"
+date: "2 de março de 2018"
+output: slidy_presentation
+---
+
+
+## Tidyverse {#tidyverse}
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+
+A linguagem R atualmente possui uma extensa lista de pacotes. São mais de 10 mil pacotes publicados apenas no CRAN, o repositório oficial de pacotes da linguagem. Contudo, para a maioria dos projetos, apenas alguns deles são necessários. A maior parte deles faz parte do famoso pacote `tidyverse`.
+
+O `tidyverse` é uma suíte que reúne pacotes que compartilham a mesma filosofia de programação em R. Ele possui pacotes para leitura de arquivos (`readr`), transformação de tabelas (`dplyr` e `tidyr`), visualização (`ggplot2`), manuseio de datas (`lubridate`) e de strings (`stringr`), web scraping (`rvest`), entre outros.
+
+Na verdade, o principal pacote R para Análise de Redes Sociais é o `igraph`, que não faz parte do `tidyverse`. Por que falar deste último, então?
+
+O motivo é que serão raríssimas as vezes em que os dados lhe serão fornecidos de maneira pronta. Antes de realizar as análises que você queira, será necessário importar os dados, fazer as limpezas necessárias e transformar os dados em grafos.
+
+Portanto, ao invés de fornecer os dados já formatados para serem usados com o `igraph`, este curso tem como um de seus objetivos capacitar o aluno a trabalhar com dados dos mais diversos formatos.
+
+
+## readr {#readr}
+
+O primeiro passo em qualquer projeto no R é importar (ou simular) os dados. Para isso, o `tidyverse` tem seu próprio pacote R: o `readr`.
+
+Um dos conjuntos de dados que iremos utilizar neste curso é um banco de dados de artigos publicados no Scielo, uma biblioteca digital de inúmeros periódicos científicos.
+
+O arquivo pode ser baixado diretamente do [site do Scielo](https://analytics.scielo.org/w/reports). O código abaixo mostra como baixar um arquivo zip e o descompactar em uma pasta pelo R.
+
+```{r, eval = FALSE}
+arquivo <- "https://static.scielo.org/tabs/tabs_bra.zip"
+# criar pasta data para salvar o arquivo
+dir.create("data")
+dir.create("data/scielo")
+# baixar arquivo para a pasta criada acima
+# download.file(url = arquivo, method = "wget", destfile = "data/scielo.zip")
+# dezipar arquivo
+unzip("data/scielo/scielo.zip", exdir = "data/scielo")
+# mostrar os arquivos baixados
+dir("data/scielo")
+```
+
+Tendo os arquivos no computador, podemos então importar os arquivos para o R. 
+
+Veja que os arquivos possuem a extensão **csv**. Portanto, vamos usar a função `readr::read_csv` para ler e importar o arquivo `documents_authors.csv`.
+
+```{r}
+#library(readr)
+library(tidyverse)
+df_docs_autores <- read_csv("/home/sillas/R/Projetos/IBPAD/curso_redes_sociais/data/scielo/documents_authors.csv")
+
+```
+
+Com a função `glimpse()`, podemos inspecionar as colunas do conjunto de dados:
+
+```{r}
+glimpse(df_docs_autores)
+```
+
+Vemos que o `readr` adivinhou corretamente a classe de todas as colunas. Em relação aos nomes das colunas, vemos que muitos possuem espaços, o que é indesejável no R.
+
+A função `colnames()` pode ser usada para modificar os nomes das colunas. Com o auxílio do pacote `stringr`, vamos então remover os espaços.
+
+```{r}
+# verificando os nomes das colunas
+colnames(df_docs_autores)
+# usando a função str_replace para substituir o espaço por underscore
+colnames(df_docs_autores) <- str_replace_all(colnames(df_docs_autores), " ", "_")
+glimpse(df_docs_autores)
+```
+
+## dplyr {#dplyr}
+
+O `dplyr` é sem dúvida um dos pacotes mais importantes do R. Sua criação facilitou enormemente tarefas como selecionar colunas, filtrar linhas e agrupar dados no R. 
+
+São muitas as possibilidades de uso do `dplyr`. Por exemplo, caso você queira criar um novo dataframe com apenas algumas do nosso dataset original:
+
+```{r}
+df <- select(df_docs_autores, extraction_date, document_author_institution)
+# usando o pipe
+df <- df_docs_autores %>% 
+  select(extraction_date, institution = document_author_institution)
+# outro jeito de renomear uma coluna
+df <- df %>% rename(author_institution = institution)
+glimpse(df)
+
+```
+
+Suponha que você queira filtrar apenas as publicações cujo(s) autor(es), são de uma universidade em específico, como a USP. Isso é feito com a função `dplyr::filter`.
+
+```{r}
+# Criar dataframe apenas com USP
+df <- df_docs_autores %>% 
+  filter(document_author_institution == "Universidade de São Paulo")
+# Criar dataframe com USP e UFRJ
+df <- df_docs_autores %>% 
+  filter(document_author_institution %in% c("Universidade de São Paulo",
+                                            "Universidade Federal do Rio de Janeiro"))
+
+```
+
+Também é possível fazer filtros a partir de datas com o auxílio do pacote `lubridate`. SUponha que desejamos filtrar as publicações realizadas nos últimos 5 anos.
+
+```{r}
+library(lubridate)
+year(now())
+
+df <- df_docs_autores %>% 
+  filter(year(now()) - document_publishing_year <= 5)
+
+```
+
+Agrupar dados também é muito fácil. Para isso, duas funções são usadas em conjunto: `dplyr::group_by()` e `dplyr::summarise()`.
+
+No caso abaixo, queremos contar a quantidade de publicações **distintas** por universidade, ordenar os dados pelo número de publicações e filtrar apenas as universidades dentro do top 10:
+
+```{r}
+df_docs_autores <- df_docs_autores %>% 
+  rename(document_id = `document_publishing_ID_(PID_SciELO)`)
+
+```
+
+```{r}
+
+df_docs_autores %>% 
+  # agregar dados por instituição
+  group_by(document_author_institution) %>% 
+  summarise(qtd_publi = n_distinct(document_id)) %>% 
+  # ordenar dados de maneira decrescente
+  arrange(desc(qtd_publi)) %>% 
+  top_n(10, qtd_publi)
+  
+```
+
+
+Percebe a segunda linha no resultado acima? Para 52877 artigos, não há informação sobre a instituição do autor do trabalho.
+
+Infelizmente, a base de dados do Scielo apresenta alguns problemas de qualidade dos dados. Por exemplo, a Universidade Estadual de Londrina, a UEL, aparece com diferentes nomes:
+
+```{r}
+df %>% 
+  count(document_author_institution) %>% 
+  filter(str_detect(document_author_institution, "Londrina")) %>% 
+  arrange(desc(n))
+```
+
+
+## ggplot2
+
+O pacote `ggplot2` é sem dúvidas é melhor ferramenta de visualização de dados do mundo. A sintaxe coesa e o alto nível de customização, além de outros benefícios, o tornam uma ferramenta poderosa para sua caixa de ferramentas. Vamos aprender por exemplos:
+
+Primeiro, como poderíamos fazer um gráfico da quantidade de artigos publicados por ano?
+
+Antes de implementar o código, pense em Pseudo-algoritmo, algo parecido com uma receita de bolo.
+
+O processo consta basicamente em duas etapas: agrupar os dados por ano e contar apenas os documentos distintos (pois um mesmo artigo pode aparecer mais de uma linha caso tenha múltiplos autores).
+
+Usando o que já aprendemos com o `dplyr` e aplicando no `ggplot2`:
+
+```{r}
+df_publi_por_ano <- df_docs_autores %>% 
+  # remover 2018 pq o ano ainda nao acabou
+  filter(document_publishing_year < 2018) %>% 
+  group_by(ano = document_publishing_year) %>% 
+  summarise(artigos = n_distinct(document_id))
+
+head(df_publi_por_ano)
+```
+
+Agora passamos o objeto criado acima para o `ggplot2`:
+
+```{r}
+ggplot(df_publi_por_ano, aes(x = ano, y = artigos)) + 
+  geom_line()
+```
+
+É possível fazer várias customizações no gráfico acima, como acrescentar legendas, alterar a escala do eixo horizontal e mudar a aparência usando adicionar um título.
+
+```{r}
+ggplot(df_publi_por_ano, aes(x = ano, y = artigos)) + 
+  geom_line() +
+  # acrescentar nomes nos eixos, titulo, subtitulo e legenda no rodapé
+  labs(x = NULL, y = "Artigos", title = "Quantidade de artigos indexados no SCIELO por ano",
+       subtitle = "O repentino aumento a partir de 2000 provavelmente se deve a um viés temporal",
+       caption = "IBPAD") + 
+  # alterar a escala do eixo horizontal (x)
+  scale_x_continuous(breaks = seq(1910, 2020, 10)) +
+  # mudar aparencia do grafico
+  theme_minimal()
+```
+
+
+Também seria possível separar a curva acima por Universidade. Vamos comparar então cinco universidades: USP, UFMG, UFPE, UNB e UFSC.
+
+```{r}
+unis <- c("Universidade de São Paulo", "Universidade Federal de Minas Gerais",
+          "Universidade Federal de Pernambuco", "Universidade de Brasília",
+          "Universidade Federal de Santa Catarina")
+
+df_publi_por_uni_ano <- df_docs_autores %>% 
+  filter(document_author_institution %in% unis) %>% 
+  count(ano = document_publishing_year, universidade = document_author_institution)
+
+head(df_publi_por_uni_ano)
+```
+
+```{r}
+ggplot(df_publi_por_uni_ano, aes(x = ano, y = n, color = universidade)) + 
+  geom_line()
+```
+
+
+

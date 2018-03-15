@@ -1,6 +1,6 @@
 --- 
-title: "A Minimal Book Example"
-author: "Yihui Xie"
+title: "Análise de Redes Sociais com R"
+author: "IBPAD"
 date: "`r Sys.Date()`"
 site: bookdown::bookdown_site
 documentclass: book
@@ -10,11 +10,15 @@ link-citations: yes
 description: "This is a minimal example of using the bookdown package to write a book. The output format for this example is bookdown::gitbook."
 ---
 
-# Prerequisites
+# Saudações
 
-This is a _sample_ book written in **Markdown**. You can use anything that Pandoc's Markdown supports, e.g., a math equation $a^2 + b^2 = c^2$.
+Seja muito bem-vindo ao curso **Análise de Redes Sociais com R**, mais um curso online oferecido pelo Instituto Brasileiro de Pesquisa e Análise de Dados, o IBPAD.
 
-The **bookdown** package can be installed from CRAN or Github:
+Neste curso você será introduzidas as principais ferramentas da linguagem R que lhe capacitarão a usar a linguagem para qualquer projeto que desejar.
+
+Após se apaixonar pelo R, a Análise de Redes Sociais (ARS) será abordada: o que é essa área? Para que ela serve? Que insights posso extrair dela?
+
+
 
 ```{r eval=FALSE}
 install.packages("bookdown")
@@ -22,13 +26,3 @@ install.packages("bookdown")
 # devtools::install_github("rstudio/bookdown")
 ```
 
-Remember each Rmd file contains one and only one chapter, and a chapter is defined by the first-level heading `#`.
-
-To compile this example to PDF, you need to install XeLaTeX.
-
-```{r include=FALSE}
-# automatically create a bib database for R packages
-knitr::write_bib(c(
-  .packages(), 'bookdown', 'knitr', 'rmarkdown'
-), 'packages.bib')
-```
