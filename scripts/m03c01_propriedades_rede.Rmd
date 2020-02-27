@@ -1,0 +1,132 @@
+---
+title: "Módulo 03 - Propriedades de uma rede"
+author: "Sillas Teixeira Gonzaga"
+date: "27 de março de 2018"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(igraph)
+```
+
+
+## Redes direcionadas e não direcionadas
+
+As arestas ou ligações de uma rede podem ser direcionadas, na qual o vetor de direção importa, ou não direcionadas. Uma rede de seguidores de Twitter, por exemplo, é direcionada, visto que é possível o usuário A seguir o usuário B sem que isso seja recíproco. Já uma rede de amigos no Facebook, por outro lado, é não direcionada, visto que, pelas regras do site, se o usuário A é amigo do usuário B então B também é amigo de A.
+
+Exemplos de ligações de redes direcionadas:  
+* E-mails e telefonemas  
+* Citações acadêmicas  
+* Internet
+
+Exemplos de ligações não direcionadas:  
+* Relacionamentos, como amizade e namoro  
+* Redes de transmissão elétrica  
+* Redes profissionais ou organizacionais
+* Redes de colaboração acadêmica (artigos que possuem mais de um autor)  
+
+
+## Grau médio e distribuição de graus
+
+Como já vimos, uma rede é composta por dois elementos: vértices e arestas. Uma importante propriedade de um vértice é o seu grau, que representa a quantidade de ligações (arestas) que ele possui com os outros vértices da rede, o que é equivalente à quantidade de vértices da rede com os quais um determinado vértice está ligado. Em redes direcionadas, é necessário fazer a distinção entre as arestas "chegando" e "saindo" de um vértice.
+
+Na rede não direcionada da imagem abaixo, por exemplo, o vértice A possui grau 3 (ou 3 graus), o B grau 1 e C e D, grau 2.
+
+```{r}
+knitr::include_graphics("imgs/grafo-degree.png")
+```
+
+Por isso, uma importante propriedade de uma rede é o grau médio, que corresponde a média dos graus dos vértices. Essa métrica pode ser usada como indicador de coesão ou densidade de uma rede. 
+
+
+## Densidade
+
+Formalmente, a densidade é uma medida relativa da quantidade de arestas que uma rede tem em relação com a máxima quantidade que ela poderia ter, considerando a sua quantidade de vértices.
+
+No caso da rede anterior, por exemplo, o grau médio é de 2. Se todos os vértices possuíssem conexão com todos os demais (grau 3), o grau médio seria 3. Portanto, a rede possui um grau médio que corresponde a 66,7% ou 2/3 do grau médio máximo dada a quantidade de vértices.
+
+Matematicamente, a densidade é definida como:
+
+$D = {2E}/{N(N-1)}$
+
+Em que E é a quantidade de arestas e N a quantidade de vértices.  
+
+
+## Coesão
+
+A coesão ou conectividade dos vértices de uma rede é o número mínimo de vértices necessários para remover que reduziriam sua conectividade. Na rede de 4 vértices de exemplo, a coesão é igual a 1, pois basta remover o vértice A que a rede deixa de ser coesa.
+
+## Comprimento médio do trajeto ou caminho
+
+No contexto de redes, um trajeto ou caminho é uma rota que liga um vértice ao outro por meio das arestas. O comprimento de um trajeto, portanto, é o número de arestas que o trajeto contem. Normalmente, deseja-se saber qual o caminho mais curto entre dois dados vértices.
+
+Assim, entende-se que o comprimento médio do trajeto é a média da distância entre todos os pares de vértices.
+
+Os caminhos de uma rede também são importantes para definir o conceito a seguir:
+
+## Diâmetro
+
+Corresponde à máxima distância entre todos os pares de vértices de uma rede.
+
+
+## Coeficiente de transitividade
+
+Transitividade corresponde à capacidade que uma rede tem de formar triângulos entre os vértices. Se A, B e C são vértices de uma rede que apresenta perfeita transitividade, então se A está conectado, por meio de uma aresta, a B e B está conectado a C, então A está conectado com C. Esse triângulo recebe o nome de clique.
+
+Portanto, o Coeficiente de transitividade de um grafo pode ser interpretado como a chance de que dois vértices (A e B) estão conectados com um outro vértice (C). Por exemplo, em uma rede social de amigos, se tal rede apresenta um coeficiente de 0,15, significa que, em média, dois amigos possuem um outro amigo em comum.
+
+## Assortatividade
+
+Em uma rede social, é comum que indivíduos que possuam coisas em comum sejam mais próximos entre si do que com aqueles sem muitos atributos semelhantes. Por exemplo, em uma rede social de universitários, é comum que pessoas interajam mais com outros que possuam o mesmo sexo, cor e classe social, entre outros. Toda escola tinha o grupinho dos nerds, das patricinhas, dos meninos que jogavam futebol, etc. Conceitualmente, esse fenômeno é conhecido como Homofilia, que afirma que um indivíduo tem mais chances de ser conectar com outros que possuam atributos semelhantes.
+
+No contexto de Análise de Redes Sociais, Assortatividade é uma propriedade da rede que mede o seu grau de Homifilia. É numérico e definido de -1 a 1, onde, para um dado atributo (ex.: Sexo), um valor positivo indica que os vértices são mais conectados com outros que possuem o mesmo valor (ex.: Masculino com Masculino) do atributo, zero indica que o atributo não tem efeito nas conexões entre os vértices e um valor negativo indica que os vértices são mais próximos de vértices que possuam valores diferentes para o atributo (ex.: Masculino com Feminino).
+
+
+```{r}
+g.ex <- igraph::make_graph(c(1, 2, 1, 3, 2, 3, 3, 4, 4, 5, 4, 6, 5, 6), directed = FALSE)
+V(g.ex)$name <- LETTERS[1:6]
+V(g.ex)$color <- c("pink", "pink", "pink", "lightblue", "lightblue", "lightblue")
+
+plot(g.ex)
+#igraph::assortativity(g.ex, as.integer(as.factor(V(g.ex)$color)))
+```
+
+No grafo acima, a assortatividade é relativamente alta (0,71), visto que claramente existem grupos separados de mulheres e homens, sendo conectados apenas por uma aresta em comum (pessoas C e D).
+
+## Reciprocidade
+
+José é amigo de João, mas será que João é amigo de José?
+
+A reciprocidade de uma rede nada mais é do que uma maneira de quantificar o porcentual de conexões mútuas entre os vértices. Por isso, deve-se ressaltar que essa propriedade só faz sentido para redes direcionadas. No gráfico abaixo, podem ser vistos dois grafos direcionados, um com reciprocidade (porem limitada) e outro sem reciprocidade.
+
+```{r}
+
+edges.sem.recip <- rbind(Reduce(rbind, combn(7:1, 2, simplify = FALSE)),
+                         Reduce(rbind, combn(1:2, 2, simplify = FALSE)))
+
+edges.com.recip <- rbind(Reduce(rbind, combn(7:1, 2, simplify = FALSE)),
+                         Reduce(rbind, combn(1:7, 2, simplify = FALSE)))
+
+plot.recip <- function(matriz_edges){
+  edges <- matriz_edges
+  set.seed(123)
+  edges <- edges[sample(1:nrow(edges), nrow(edges)*.5, replace = FALSE),]
+  
+  g.ex <- graph_from_data_frame(edges, directed = TRUE)
+  recip <- round(igraph::reciprocity(g.ex), 3)
+  plot(g.ex, edge.arrow.size = .3, main = paste0("Reciprocidade: ", recip))
+  
+}
+
+par(mfrow = c(1, 2))
+plot.recip(edges.com.recip)
+plot.recip(edges.sem.recip)
+
+```
+
+
+Na rede da esquerda, note como a conexão entre os vértices 1 e 2 é mútua, mas a conexão entre 1 e 3 não é.
+
+

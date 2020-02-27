@@ -1,0 +1,59 @@
+---
+title: "Módulo 3 - Medidas de importância e centralidade de vértices"
+author: "Sillas Teixeira Gonzaga"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(igraph)
+```
+
+
+
+Uma das principais aplicações da Análise de Redes Sociais é descrever a importância que cada vértice tem na rede por meio de métricas de centralidade. Existem vários conceitos de centralidade, portanto cabe ao autor da análise refletir sobre o que cada métrica significa para a rede que está sendo analisado. A seguir uma descrição das métricas de centralidade mais usadas:
+
+## Degree
+
+Corresponde à uma simples contagem da quantidade de vértices que um dado vértice está conectado por meio de uma aresta. Em outras palavras, degree centrality é a quantidade de arestas que estão conectadas a um vértice.
+
+## Closeness
+
+A métrica closeness centrality é o inverso da média das distâncias de um vértice para os outros vértices. Ou seja, é equivalente a medir quantas arestas em média um vértice da rede tem com outros vértices. Um vértice com grande centralidade consegue interagir com a rede como um todo com menos esforço.
+
+## Betweenness
+
+Para um dado vértice K, a métrica betweenness é definida como o porcentual de vezes que um vértice A precisa dele (de K) para se conectar com um vértice C por meio do trajeto mais curto possível. Isto é, de todos os menores trajetos possíveis entre todos os pares de vértices da rede, quantos passam por K?
+
+Uma outra forma de interpretar essa métrica é como se fosse a participação de K em todos os menores caminhos possíveis da rede.
+
+Suponha uma rede bem simples:
+
+```{r}
+grafo <- make_graph(c(1, 2, 1, 3, 2, 4, 3, 4), directed = FALSE)
+plot(grafo)
+```
+
+Suponha que 1 deseja transmitir uma informação para 4 pelo menor caminho possível: ele pode fazer isso escolhendo tanto o vértice 2 como o 3. Como se trata de um quadrado, o mesmo ocorre com todos os outros pares de trajetos. Dessa forma, a betweenness de todos os vértices é igual a 0,5.
+
+```{r}
+betweenness(grafo)
+```
+
+
+## Eigenvector (autovetor) centrality 
+
+É uma medida de conectividade que atribui valores maiores a vértices que estão conectados com mais vértices. Isto é, a centralidade de um vértice K é proporcional à soma das centralidades dos vértices que K está conectado. Assim, vértices com altos valores dessa métrica estão ligados com muitos outros vértices que, por sua vez, também estão conectados com muitos outros vértices.
+
+No grafo abaixo, dentre os vértices A, B, ou G, qual deve possuir o menor valor da eigenvector centrality?
+
+```{r}
+e <- c(1, 3, 2, 3, 3, 4, 3, 5, 4, 6, 5, 6, 6, 7)
+#e <- paste0("V", e)
+g <- make_graph(e, directed = FALSE)
+V(g)$name <- LETTERS[1:7]
+plot(g)
+```
+
+O vértice G possui o menor valor, pois está ligado com o vértice F, que possui apenas 2 conexões, enquanto A e B estão ligados com o vértice C, que possui 3 conexões.
+
